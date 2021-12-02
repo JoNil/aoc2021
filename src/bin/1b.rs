@@ -1,10 +1,9 @@
 use aoc2021::get_input;
 
-fn solve(input: impl AsRef<str>) -> i32 {
+fn solve(input: &str) -> i32 {
     let mut last = None;
 
     let input = input
-        .as_ref()
         .lines()
         .map(|l| l.parse::<i32>().unwrap())
         .collect::<Vec<_>>();
@@ -37,7 +36,7 @@ fn solve(input: impl AsRef<str>) -> i32 {
 
 fn main() {
     let input = get_input();
-    let res = solve(input);
+    let res = solve(&input);
     println!("{}", res);
 }
 

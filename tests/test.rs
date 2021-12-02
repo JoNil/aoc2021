@@ -15,3 +15,5 @@ macro_rules! aoc_test {
 
 aoc_test!(test_1a => "1709");
 aoc_test!(test_1b => "1761");
+aoc_test!(test_2a => "1868935");
+aoc_test!(test_2b => "1965970888");
