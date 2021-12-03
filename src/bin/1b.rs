@@ -1,8 +1,6 @@
 use aoc2021::get_input;
 
 fn solve(input: &str) -> i32 {
-    let mut last = None;
-
     let input = input
         .lines()
         .map(|l| l.parse::<i32>().unwrap())
@@ -16,22 +14,18 @@ fn solve(input: &str) -> i32 {
 
     window_sums
         .iter()
-        .map(|v| {
-            let res = if let Some(last) = last {
-                if v > last {
-                    1
+        .fold((0, None), |(count, last), val| {
+            if let Some(last) = last {
+                if val > last {
+                    (count + 1, Some(val))
                 } else {
-                    0
+                    (count, Some(val))
                 }
             } else {
-                0
-            };
-
-            last = Some(v);
-
-            res
+                (count, Some(val))
+            }
         })
-        .sum::<i32>()
+        .0
 }
 
 fn main() {

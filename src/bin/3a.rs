@@ -38,7 +38,8 @@ fn solve(input: &str) -> u32 {
         }
     }
 
-    let epsilon_rate = !gamma_rate & (!-(1 << bit_count as i32)) as u32;
+    //let epsilon_rate = !gamma_rate & (!-(1 << bit_count as i32)) as u32;
+    let epsilon_rate = !gamma_rate & (!0 >> (32 - bit_count));
 
     gamma_rate * epsilon_rate
 }
