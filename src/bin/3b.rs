@@ -1,44 +1,29 @@
 use aoc2021::get_input;
+use bit_field::BitField;
 
-fn count_bit_digits(bit_count: usize, numbers: &[u32]) -> (Vec<u32>, Vec<u32>) {
-    let mut one_count = vec![0; bit_count];
-    let mut zero_count = vec![0; bit_count];
+fn count_bit_digits(bit_count: usize, numbers: &[u32]) -> Vec<i32> {
+    let mut count = vec![0; bit_count];
 
     for num in numbers {
-        for bit in 0..bit_count {
-            if num & (1 << (bit_count - 1 - bit)) > 0 {
-                one_count[bit] += 1;
-            } else {
-                zero_count[bit] += 1;
-            }
+        for (i, c) in count.iter_mut().enumerate() {
+            let bit = num.get_bit(bit_count - 1 - i);
+            *c += if bit { 1 } else { -1 };
         }
     }
 
-    (one_count, zero_count)
+    count
 }
 
-fn search_for_pattern(
-    bit_count: usize,
-    numbers: &[u32],
-    selector: impl Fn(u32, u32) -> bool,
-) -> u32 {
+fn search_for_pattern(bit_count: usize, numbers: &[u32], selector: impl Fn(i32) -> bool) -> u32 {
     let mut remaining_numbers = numbers.to_vec();
 
     for bit in 0..bit_count {
-        let (one_count, zero_count) = count_bit_digits(bit_count, remaining_numbers.as_slice());
-
-        let desired_value = if selector(one_count[bit], zero_count[bit]) {
-            1
-        } else {
-            0
-        };
-
-        let bit_pos = bit_count - 1 - bit;
+        let count = count_bit_digits(bit_count, remaining_numbers.as_slice());
 
         remaining_numbers = remaining_numbers
             .iter()
             .copied()
-            .filter(|num| ((*num & (1 << bit_pos)) >> bit_pos) == desired_value)
+            .filter(|num| num.get_bit(bit_count - 1 - bit) == selector(count[bit]))
             .collect::<Vec<_>>();
 
         if remaining_numbers.len() == 1 {
@@ -59,13 +44,8 @@ fn solve(input: &str) -> u32 {
         numbers.push(u32::from_str_radix(line, 2).unwrap());
     }
 
-    let oxygen_generator_rating =
-        search_for_pattern(bit_count, &numbers, |one_count, zero_count| {
-            one_count >= zero_count
-        });
-    let co2_scrubber_rating = search_for_pattern(bit_count, &numbers, |one_count, zero_count| {
-        one_count < zero_count
-    });
+    let oxygen_generator_rating = search_for_pattern(bit_count, &numbers, |count| count >= 0);
+    let co2_scrubber_rating = search_for_pattern(bit_count, &numbers, |count| count < 0);
 
     oxygen_generator_rating * co2_scrubber_rating
 }

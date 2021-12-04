@@ -7,6 +7,7 @@ name = "aoc2021"
 version = "0.1.0"
 dependencies = [
  "assert_cmd",
+ "bit_field",
  "glam",
 ]
 
@@ -23,6 +24,12 @@ dependencies = [
  "predicates-tree",
  "wait-timeout",
 ]
+
+[[package]]
+name = "bit_field"
+version = "0.10.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dcb6dd1c2376d2e096796e234a70e17e94cc2d5d54ff8ce42b28cef1d0d359a4"
 
 [[package]]
 name = "bstr"
