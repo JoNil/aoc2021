@@ -11,7 +11,7 @@ pub fn get_input() -> String {
     fs::read_to_string(format!("input/{}.txt", program_name)).unwrap()
 }
 
-pub fn print_map(map: HashMap<IVec2, impl Display>) {
+pub fn print_map(map: &HashMap<IVec2, impl Display>) {
     let max_x = map
         .keys()
         .copied()
