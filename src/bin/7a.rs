@@ -4,8 +4,9 @@ fn sum_of_distances(nums: &[i32], target: i32) -> i32 {
     nums.iter().fold(0, |sum, val| sum + (*val - target).abs())
 }
 
-fn solve(input: &str) -> i64 {
+fn solve(input: &str) -> i32 {
     let numbers = input
+        .trim()
         .split(',')
         .map(|s| s.parse().unwrap())
         .collect::<Vec<i32>>();
@@ -14,11 +15,27 @@ fn solve(input: &str) -> i64 {
 
     let average = sum as f32 / numbers.len() as f32;
 
-    println!("{}", sum_of_distances(&numbers, 2));
+    let mut has_switched_direction = false;
+    let mut current_guess = average as i32;
+    let mut lowest_so_far = sum_of_distances(&numbers, current_guess);
+    let mut direction = 1;
 
-    println!("{}", average);
+    loop {
+        let new_guess = current_guess + direction;
+        let new_value = sum_of_distances(&numbers, new_guess);
 
-    0
+        if new_value < lowest_so_far {
+            current_guess = new_guess;
+            lowest_so_far = new_value;
+        } else if !has_switched_direction {
+            direction = -1;
+            has_switched_direction = true;
+        } else {
+            break;
+        }
+    }
+
+    lowest_so_far
 }
 
 fn main() {
