@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use aoc2021::{get_input, print_map};
+use aoc2021::get_input;
 use glam::{ivec2, IVec2};
 
 fn solve(input: &str) -> i32 {
@@ -29,16 +29,16 @@ fn solve(input: &str) -> i32 {
 
     let mut risk = 0;
 
-    for y in 0..max_y.y {
-        'next: for x in 0..max_x.x {
+    for y in 0..=max_y.y {
+        'next: for x in 0..=max_x.x {
             let pos = ivec2(x, y);
             let num = map.get(&pos).unwrap();
 
             for offset in offsets {
                 let adjacent_num = map.get(&(pos + *offset)).unwrap_or(&i32::MAX);
 
-                if *adjacent_num < *num {
-                    break 'next;
+                if *adjacent_num <= *num {
+                    continue 'next;
                 }
             }
 
