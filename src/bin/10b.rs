@@ -2,10 +2,10 @@ use aoc2021::get_input;
 
 fn calc_score(c: char) -> i64 {
     match c {
-        ')' => 1,
-        ']' => 2,
-        '}' => 3,
-        '>' => 4,
+        '(' => 1,
+        '[' => 2,
+        '{' => 3,
+        '<' => 4,
         _ => panic!("Invalid char"),
     }
 }
@@ -16,16 +16,6 @@ fn get_matchin(c: char) -> char {
         ']' => '[',
         '}' => '{',
         '>' => '<',
-        _ => panic!("Invalid char"),
-    }
-}
-
-fn get_reverse(c: char) -> char {
-    match c {
-        '(' => ')',
-        '[' => ']',
-        '{' => '}',
-        '<' => '>',
         _ => panic!("Invalid char"),
     }
 }
@@ -53,7 +43,7 @@ fn solve(input: &str) -> i64 {
         let mut line_score = 0;
 
         for compleating_c in stack.iter().rev() {
-            line_score = line_score * 5 + calc_score(get_reverse(*compleating_c));
+            line_score = line_score * 5 + calc_score(*compleating_c);
         }
 
         line_scores.push(line_score);
