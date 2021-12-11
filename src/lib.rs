@@ -35,3 +35,15 @@ pub fn print_map(map: &HashMap<IVec2, impl Display>) {
         println!();
     }
 }
+
+pub fn parse_map<T>(input: &str, parse: impl Fn(char) -> T) -> HashMap<IVec2, T> {
+    let mut map = HashMap::new();
+    for (y, line) in input.lines().enumerate() {
+        for (x, char) in line.chars().enumerate() {
+            let pos = ivec2(x as i32, y as i32);
+            let height = parse(char);
+            map.insert(pos, height);
+        }
+    }
+    map
+}

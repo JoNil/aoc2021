@@ -1,20 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
-use aoc2021::get_input;
+use aoc2021::{get_input, parse_map};
 use glam::{ivec2, IVec2};
 
 fn solve(input: &str) -> i32 {
-    let mut map = HashMap::new();
-
     let offsets = &[IVec2::new(0, -1), ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1)];
 
-    for (y, line) in input.lines().enumerate() {
-        for (x, char) in line.chars().enumerate() {
-            let pos = ivec2(x as i32, y as i32);
-            let height = char.to_digit(10).unwrap() as i32;
-            map.insert(pos, height);
-        }
-    }
+    let map = parse_map(input, |c| c.to_digit(10).unwrap() as i32);
 
     let max_x = map
         .keys()
