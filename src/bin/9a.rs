@@ -1,10 +1,10 @@
 use aoc2021::{get_input, parse_map};
-use glam::{ivec2, IVec2};
+use glam::ivec2;
 
 fn solve(input: &str) -> i32 {
     let map = parse_map(input, |c| c.to_digit(10).unwrap() as i32);
 
-    let offsets = &[IVec2::new(0, -1), ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1)];
+    let offsets = &[ivec2(0, -1), ivec2(-1, 0), ivec2(1, 0), ivec2(0, 1)];
 
     let max_x = map
         .keys()
