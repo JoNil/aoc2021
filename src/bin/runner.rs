@@ -52,5 +52,5 @@ fn main() {
         );
     }
 
-    println!("Total    {} μs", total);
+    println!("Total {} μs", total);
 }
