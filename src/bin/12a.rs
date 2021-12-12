@@ -77,11 +77,12 @@ fn solve(input: &str) -> i32 {
         let node = &graph[node_id as usize];
         path.push(node_id);
 
+        nodes_to_search.push(-1);
+
         if node_id == end_id {
             path_count += 1;
+            continue;
         }
-
-        nodes_to_search.push(-1);
 
         for candidate in node.links.as_slice().iter().copied() {
             let candidate_node = &graph[candidate as usize];
