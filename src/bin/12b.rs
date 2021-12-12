@@ -57,25 +57,27 @@ fn solve(input: &str) -> i32 {
     let end_id = ids.reverse_lables["end"];
     let mut nodes_to_search = vec![start_id];
     let mut path = Vec::new();
-    let mut duplicate_small_in_path = Vec::new();
+    let mut duplicate_small_in_path = 0;
     let mut has_duplicate_small_in_path = false;
     let mut path_count = 0;
 
     while let Some(node_id) = nodes_to_search.pop() {
         if node_id == -1 {
-            let was_the_duplicate = duplicate_small_in_path.pop().unwrap();
-            if was_the_duplicate {
+            let poped_id = path.pop().unwrap();
+            if poped_id == duplicate_small_in_path {
                 has_duplicate_small_in_path = false;
             }
-            path.pop();
+
             continue;
         }
 
         let node = &graph[node_id as usize];
         let is_duplicate_small = !node.is_big && path.contains(&node_id);
-        duplicate_small_in_path.push(is_duplicate_small);
+        if is_duplicate_small {
+            duplicate_small_in_path = node_id;
+            has_duplicate_small_in_path = true;
+        }
         path.push(node_id);
-        has_duplicate_small_in_path |= is_duplicate_small;
 
         nodes_to_search.push(-1);
 
