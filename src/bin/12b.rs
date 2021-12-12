@@ -58,18 +58,24 @@ fn solve(input: &str) -> i32 {
     let mut nodes_to_search = vec![start_id];
     let mut path = Vec::new();
     let mut duplicate_small_in_path = Vec::new();
+    let mut has_duplicate_small_in_path = false;
     let mut path_count = 0;
 
     while let Some(node_id) = nodes_to_search.pop() {
         if node_id == -1 {
-            duplicate_small_in_path.pop();
+            let was_the_duplicate = duplicate_small_in_path.pop().unwrap();
+            if was_the_duplicate {
+                has_duplicate_small_in_path = false;
+            }
             path.pop();
             continue;
         }
 
         let node = &graph[node_id as usize];
-        duplicate_small_in_path.push(!node.is_big && path.contains(&node_id));
+        let is_duplicate_small = !node.is_big && path.contains(&node_id);
+        duplicate_small_in_path.push(is_duplicate_small);
         path.push(node_id);
+        has_duplicate_small_in_path |= is_duplicate_small;
 
         nodes_to_search.push(-1);
 
@@ -85,16 +91,8 @@ fn solve(input: &str) -> i32 {
 
             let candidate_node = &graph[candidate as usize];
 
-            if !candidate_node.is_big {
-                let duplicate_small_in_path_count = duplicate_small_in_path
-                    .iter()
-                    .copied()
-                    .filter(|is_duplicate| *is_duplicate)
-                    .count();
-
-                if duplicate_small_in_path_count > 0 && path.contains(&candidate) {
-                    continue;
-                }
+            if !candidate_node.is_big && has_duplicate_small_in_path && path.contains(&candidate) {
+                continue;
             }
 
             nodes_to_search.push(candidate);
