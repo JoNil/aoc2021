@@ -4,11 +4,22 @@ macro_rules! aoc_test {
     ($name:ident => $value:literal) => {
         #[test]
         fn $name() {
-            Command::cargo_bin(stringify!($name).trim_start_matches("test_"))
+            let cmd = Command::cargo_bin(stringify!($name).trim_start_matches("test_"))
                 .unwrap()
                 .assert()
-                .success()
-                .stdout(concat!($value, "\n"));
+                .success();
+
+            let output = cmd.get_output();
+
+            assert_eq!(
+                std::str::from_utf8(&output.stdout)
+                    .unwrap()
+                    .split(':')
+                    .nth(1)
+                    .unwrap()
+                    .trim(),
+                $value
+            );
         }
     };
 }

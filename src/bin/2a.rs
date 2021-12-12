@@ -22,8 +22,10 @@ fn solve(input: &str) -> i32 {
 
 fn main() {
     let input = get_input();
+    let start = std::time::Instant::now();
     let res = solve(&input);
-    println!("{}", res);
+    let end = start.elapsed();
+    println!("Day {} ({:?}): {}", aoc2021::get_program_name(), end, res);
 }
 
 #[cfg(test)]
