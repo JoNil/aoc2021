@@ -9,7 +9,6 @@ struct Node {
 
 #[derive(Default)]
 struct IdTable<'a> {
-    lables: Vec<&'a str>,
     reverse_lables: HashMap<&'a str, i32>,
     next_id: i32,
 }
@@ -19,7 +18,6 @@ impl<'a> IdTable<'a> {
         *self.reverse_lables.entry(s).or_insert_with(|| {
             let id = self.next_id;
             self.next_id += 1;
-            self.lables.push(s);
             id
         })
     }
@@ -46,20 +44,12 @@ fn solve(input: &str) -> i32 {
         {
             let node = &mut graph[from_id as usize];
             node.links.push(to_id);
-            node.is_big = ids.lables[from_id as usize]
-                .chars()
-                .next()
-                .unwrap()
-                .is_uppercase();
+            node.is_big = from.chars().next().unwrap().is_uppercase();
         }
         {
             let node = &mut graph[to_id as usize];
             node.links.push(from_id);
-            node.is_big = ids.lables[to_id as usize]
-                .chars()
-                .next()
-                .unwrap()
-                .is_uppercase();
+            node.is_big = to.chars().next().unwrap().is_uppercase();
         }
     }
 
