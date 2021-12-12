@@ -25,7 +25,12 @@ fn main() {
     let start = std::time::Instant::now();
     let res = solve(&input);
     let end = start.elapsed();
-    println!("Day {} ({:?}): {}", aoc2021::get_program_name(), end, res);
+    println!(
+        "Day {} ({:?}): {}",
+        aoc2021::get_program_name(),
+        end.as_micros(),
+        res
+    );
 }
 
 #[cfg(test)]
