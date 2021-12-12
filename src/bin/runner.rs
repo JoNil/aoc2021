@@ -26,9 +26,9 @@ fn main() {
         total += a_res.time.parse::<i32>().unwrap();
 
         println!(
-            "Day {:<3} {:<10} {}",
+            "Day {:<3} {:<12} {}",
             a_res.program,
-            format!("({}):", a_res.time),
+            format!("({} μs):", a_res.time),
             a_res.result
         );
 
@@ -45,9 +45,9 @@ fn main() {
         total += b_res.time.parse::<i32>().unwrap();
 
         println!(
-            "Day {:<3} {:<10} {:<10}",
+            "Day {:<3} {:<12} {}",
             b_res.program,
-            format!("({}):", b_res.time),
+            format!("({} μs):", b_res.time),
             b_res.result
         );
     }
