@@ -8,6 +8,30 @@ enum Fold {
     Horizontal(i32),
 }
 
+fn print_map(map: &HashSet<(i32, i32)>) {
+    let max_x = map
+        .iter()
+        .copied()
+        .max_by(|p1, p2| p1.0.cmp(&p2.0))
+        .unwrap();
+    let max_y = map
+        .iter()
+        .copied()
+        .max_by(|p1, p2| p1.1.cmp(&p2.1))
+        .unwrap();
+
+    for y in 0..=max_y.1 {
+        for x in 0..=max_x.0 {
+            if map.contains(&(x, y)) {
+                print!("#");
+            } else {
+                print!(".");
+            }
+        }
+        println!();
+    }
+}
+
 fn solve(input: &str) -> i32 {
     let mut map = HashSet::new();
 
@@ -41,7 +65,7 @@ fn solve(input: &str) -> i32 {
 
     let mut new_map = HashSet::new();
 
-    for fold in &folds[0..1] {
+    for fold in &folds {
         for (x, y) in map.iter().copied() {
             new_map.insert(match fold {
                 Fold::Vertical(pos) => {
@@ -65,7 +89,9 @@ fn solve(input: &str) -> i32 {
         new_map.clear();
     }
 
-    map.len() as i32
+    print_map(&map);
+
+    0
 }
 
 fn main() {
