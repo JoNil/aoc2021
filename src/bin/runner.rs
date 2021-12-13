@@ -12,7 +12,7 @@ struct Result {
 fn main() {
     let mut total = 0;
 
-    for i in 1..=12 {
+    for i in 1..=13 {
         let a = Command::new(format!("target/release/{}a", i))
             .output()
             .unwrap();
@@ -20,6 +20,9 @@ fn main() {
         let a_res = str::from_utf8(&a.stdout)
             .unwrap()
             .trim()
+            .lines()
+            .last()
+            .unwrap()
             .parse::<Result>()
             .unwrap();
 
@@ -39,6 +42,9 @@ fn main() {
         let b_res = str::from_utf8(&b.stdout)
             .unwrap()
             .trim()
+            .lines()
+            .last()
+            .unwrap()
             .parse::<Result>()
             .unwrap();
 
