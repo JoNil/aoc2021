@@ -12,7 +12,7 @@ struct Result {
 fn main() {
     let mut total = 0;
 
-    for i in 1..=13 {
+    for i in 1..=14 {
         let a = Command::new(format!("target/release/{}a", i))
             .output()
             .unwrap();
