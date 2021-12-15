@@ -95,9 +95,6 @@ fn solve(input: &str) -> i32 {
     let mut g_score = HashMap::new();
     *g_score.entry(start).or_default() = 0;
 
-    let mut f_score = HashMap::new();
-    *f_score.entry(start).or_default() = h(start);
-
     let mut total_path = Vec::new();
 
     while let Some(State {
@@ -120,7 +117,6 @@ fn solve(input: &str) -> i32 {
                     let f = tentative_g_score + h(neighbor);
                     came_from.insert(neighbor, current);
                     g_score.insert(neighbor, tentative_g_score);
-                    f_score.insert(neighbor, *d);
                     open_set.push(State {
                         cost: f,
                         pos: neighbor,
