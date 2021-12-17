@@ -14,22 +14,17 @@ struct TargetArea {
 fn solve(input: &str) -> i32 {
     let target = input.trim().parse::<TargetArea>().unwrap();
 
-    let mut max_y = 0;
+    let mut hits = 0;
 
-    for dx in 1..target.end.x {
-        for dy in target.start.y..1000 {
+    for dx in 0..2 * target.end.x {
+        for dy in -1000..2000 {
             let mut pos = ivec2(0, 0);
             let mut velocity = ivec2(dx, dy);
-            let mut local_max_y = 0;
 
             for _ in 0.. {
                 pos += velocity;
                 velocity.x = (velocity.x - 1).max(0);
                 velocity.y -= 1;
-
-                if pos.y > local_max_y {
-                    local_max_y = pos.y;
-                }
 
                 // Collided
                 if pos.x <= target.end.x
@@ -37,9 +32,7 @@ fn solve(input: &str) -> i32 {
                     && pos.y >= target.start.y
                     && pos.y <= target.end.y
                 {
-                    if local_max_y > max_y {
-                        max_y = local_max_y;
-                    }
+                    hits += 1;
                     break;
                 }
 
@@ -51,7 +44,7 @@ fn solve(input: &str) -> i32 {
         }
     }
 
-    max_y
+    hits
 }
 
 fn main() {
@@ -72,6 +65,6 @@ mod test {
     #[test]
     fn test() {
         let input = "target area: x=20..30, y=-10..-5";
-        assert_eq!(crate::solve(input), 45);
+        assert_eq!(crate::solve(input), 112);
     }
 }
