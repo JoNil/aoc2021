@@ -22,11 +22,14 @@ pub fn get_input() -> String {
 }
 
 pub fn print_map(map: &HashMap<IVec2, impl Display>) {
+    let min_x = map.keys().map(|v| v.x).min().unwrap();
+    let min_y = map.keys().map(|v| v.y).min().unwrap();
+
     let max_x = map.keys().map(|v| v.x).max().unwrap();
     let max_y = map.keys().map(|v| v.y).max().unwrap();
 
-    for y in 0..=max_y {
-        for x in 0..=max_x {
+    for y in min_y..=max_y {
+        for x in min_x..=max_x {
             let hit = map
                 .get(&ivec2(x, y))
                 .map(|count| format!("{}", count))
