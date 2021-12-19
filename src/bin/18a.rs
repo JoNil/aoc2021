@@ -12,34 +12,49 @@ type Number = Vec<Num>;
 fn print(num: &Number) -> String {
     let mut res = "".to_string();
 
+    dbg!(num);
+
+    let mut last_level = 0;
     let mut current_level = 0;
-    let mut even = 0;
+    let mut printed_at_level = 0;
+    let mut needs_comma = false;
     for (i, n) in num.iter().enumerate() {
         while current_level < n.depth {
+            if needs_comma {
+                write!(res, ",").unwrap();
+                needs_comma = false;
+            }
+
             write!(res, "[").unwrap();
             current_level += 1;
-            even = 0;
+            printed_at_level = 1;
         }
 
         while current_level > n.depth {
             write!(res, "]").unwrap();
             current_level -= 1;
-            even = 1;
+            printed_at_level = 0;
+        }
+
+        if printed_at_level == 2 {
+            write!(res, "],[").unwrap();
+            printed_at_level = 0;
+            needs_comma = false;
+        }
+
+        if needs_comma {
+            write!(res, ",").unwrap();
+            needs_comma = false;
         }
 
         write!(res, "{}", n.value).unwrap();
+        needs_comma = true;
 
-        if i != num.len() - 1 {
-            if even == 0 {
-                write!(res, ",").unwrap();
-            } else {
-                write!(res, "],").unwrap();
-                current_level -= 1;
-                even = 1;
-            }
+        if current_level == last_level {
+            printed_at_level += 1;
         }
 
-        even = (even + 1) & 0b1;
+        last_level = current_level;
     }
 
     while current_level > 0 {
