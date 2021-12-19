@@ -9,60 +9,38 @@ struct Num {
 
 type Number = Vec<Num>;
 
+#[derive(Debug)]
+struct PrintNum {
+    depth: i32,
+    printed: String,
+}
+
 fn print(num: &Number) -> String {
-    let mut res = "".to_string();
+    let mut current_depth = num.iter().map(|n| n.depth).max().unwrap();
 
-    dbg!(num);
+    let mut state = Vec::new();
 
-    let mut last_level = 0;
-    let mut current_level = 0;
-    let mut printed_at_level = 0;
-    let mut needs_comma = false;
-    for (i, n) in num.iter().enumerate() {
-        while current_level < n.depth {
-            if needs_comma {
-                write!(res, ",").unwrap();
-                needs_comma = false;
+    for n in num {
+        state.push(PrintNum {
+            depth: n.depth,
+            printed: format!("{}", n.value),
+        });
+    }
+
+    while state.len() > 1 {
+        let mut i = 0;
+        while i < state.len() - 1 {
+            if state[i].depth == current_depth && state[i + 1].depth == current_depth {
+                state[i].depth -= 1;
+                state[i].printed = format!("[{},{}]", state[i].printed, state[i + 1].printed);
+                state.remove(i + 1);
             }
-
-            write!(res, "[").unwrap();
-            current_level += 1;
-            printed_at_level = 1;
+            i += 1;
         }
-
-        while current_level > n.depth {
-            write!(res, "]").unwrap();
-            current_level -= 1;
-            printed_at_level = 0;
-        }
-
-        if printed_at_level == 2 {
-            write!(res, "],[").unwrap();
-            printed_at_level = 0;
-            needs_comma = false;
-        }
-
-        if needs_comma {
-            write!(res, ",").unwrap();
-            needs_comma = false;
-        }
-
-        write!(res, "{}", n.value).unwrap();
-        needs_comma = true;
-
-        if current_level == last_level {
-            printed_at_level += 1;
-        }
-
-        last_level = current_level;
+        current_depth -= 1;
     }
 
-    while current_level > 0 {
-        write!(res, "]").unwrap();
-        current_level -= 1;
-    }
-
-    res
+    state.into_iter().next().unwrap().printed
 }
 
 fn parse(input: &str) -> Number {
@@ -97,7 +75,7 @@ fn reduce(mut num: Number) -> Number {
         let a = num[i];
         let b = num[i + 1];
 
-        if a.depth >= 4 && b.depth >= 4 && a.depth == b.depth {
+        if a.depth > 4 && b.depth > 4 && a.depth == b.depth {
             if i > 0 {
                 num[i - 1].value += a.value;
             }
@@ -167,7 +145,7 @@ mod test {
     #[test]
     fn test_explode() {
         let data = [
-            ("[[9,8],[1,2],[1,2]]", "[[9,8],[1,2],[1,2]]"),
+            ("[[9,8],[1,2]]", "[[9,8],[1,2]]"),
             ("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]"),
             ("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]"),
             ("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]"),
