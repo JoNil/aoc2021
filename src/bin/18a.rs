@@ -8,47 +8,34 @@ enum Number {
 }
 
 impl Number {
-    fn is_regular_pair(&self) -> Option<(i32, i32)> {
+    fn is_regular_pair(&self) -> Option<(Option<i32>, Option<i32>)> {
         match self {
             Pair(left, right) => match (&**left, &**right) {
-                (Literal(lhs), Literal(rhs)) => Some((*lhs, *rhs)),
+                (Literal(lhs), Literal(rhs)) => Some((Some(*lhs), Some(*rhs))),
                 _ => None,
             },
             _ => None,
         }
     }
 
-    fn explode(self, depth: i32) -> (Option<(i32, i32)>, Number) {
-        if depth >= 4 {
-            if let Some((lhs, rhs)) = self.is_regular_pair() {
-                return (Some((lhs, rhs)), Literal(0));
-            }
+    fn explode(self) -> Number {
+
+        let mut last_left = None;
+
+        let mut current = &self;
+
+        loop {
+
+            
+
+            let current = 
+
         }
 
-        match self {
-            Literal(val) => (None, Literal(val)),
-            Pair(lhs, rhs) => {
-                let lhs = match lhs.explode(depth + 1) {
-                    (Some((left, right)), num) => {
-                        return (Some((left, right)), Pair(Box::new(num), rhs));
-                    }
-                    (None, lhs) => lhs,
-                };
-
-                let rhs = match rhs.explode(depth + 1) {
-                    (Some((left, right)), num) => {
-                        return (Some((left, right)), Pair(Box::new(lhs), Box::new(num)));
-                    }
-                    (None, rhs) => rhs,
-                };
-
-                (None, Pair(Box::new(lhs), Box::new(rhs)))
-            }
-        }
     }
 
     fn reduce(self) -> Number {
-        self.explode(1).1
+        self.explode()
     }
 
     fn add(self, rhs: Number) -> Number {
