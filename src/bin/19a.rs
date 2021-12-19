@@ -1,6 +1,5 @@
 use aoc2021::get_input;
 use glam::{ivec3, IVec3};
-use itertools::Itertools;
 
 fn parse(input: &str) -> Vec<Vec<IVec3>> {
     input
@@ -22,35 +21,56 @@ fn parse(input: &str) -> Vec<Vec<IVec3>> {
         .collect()
 }
 
+#[derive(Debug, Default)]
+struct Beacon {
+    distances: Vec<(i32, usize)>,
+}
+
 fn solve(input: &str) -> i32 {
     let scanners = parse(input);
 
     let mut internal_distances = Vec::new();
 
     for scanner in &scanners {
-        let mut distances = Vec::new();
-        for (i, j) in (0..scanner.len()).tuple_combinations() {
-            let dist = (scanner[i] - scanner[j]).abs();
-            distances.push((dist.x + dist.y + dist.z, (i, j)));
+        let mut scanner_beacons = Vec::new();
+
+        for i in 0..scanner.len() {
+            let mut beacon = Beacon::default();
+
+            for j in 0..scanner.len() {
+                if i != j {
+                    let a = scanner[i];
+                    let b = scanner[j];
+
+                    let distance = (a - b).abs();
+
+                    beacon
+                        .distances
+                        .push((distance.x + distance.y + distance.z, j));
+                }
+            }
+
+            beacon.distances.sort_by(|a, b| a.0.cmp(&b.0));
+            beacon.distances.drain(12..);
+
+            scanner_beacons.push(beacon);
         }
-        internal_distances.push(distances);
+
+        internal_distances.push(scanner_beacons);
     }
 
-    let mut a = internal_distances[0]
-        .iter()
-        .map(|id| id.0)
-        .collect::<Vec<_>>();
-    a.sort_unstable();
+    println!(
+        "{:?}",
+        internal_distances[0][0]
+            .distances
+            .iter()
+            .map(|d| d.0)
+            .collect::<Vec<_>>()
+    );
 
-    let mut b = internal_distances[1]
-        .iter()
-        .map(|id| id.0)
-        .collect::<Vec<_>>();
-
-    b.sort_unstable();
-
-    dbg!(a);
-    dbg!(b);
+    for d in &internal_distances[1] {
+        println!("{:?}", d.distances.iter().map(|d| d.0).collect::<Vec<_>>());
+    }
 
     0
 }
@@ -208,6 +228,6 @@ mod test {
 891,-625,532
 -652,-548,-490
 30,-46,-14";
-        assert_eq!(crate::solve(input), 4140);
+        assert_eq!(crate::solve(input), 79);
     }
 }
