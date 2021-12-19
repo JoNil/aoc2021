@@ -1,107 +1,114 @@
 use aoc2021::get_input;
-use std::fmt::Debug;
-use Number::{Literal, Pair};
+use std::fmt::{Debug, Display, Write};
 
-enum Number {
-    Literal(i32),
-    Pair(Box<Number>, Box<Number>),
+#[derive(Copy, Clone, Debug)]
+struct Num {
+    depth: i32,
+    value: i32,
 }
 
-impl Number {
-    fn is_regular_pair(&self) -> Option<(Option<i32>, Option<i32>)> {
-        match self {
-            Pair(left, right) => match (&**left, &**right) {
-                (Literal(lhs), Literal(rhs)) => Some((Some(*lhs), Some(*rhs))),
-                _ => None,
-            },
-            _ => None,
-        }
-    }
+type Number = Vec<Num>;
 
-    fn explode(self) -> Number {
+fn print(num: &Number) -> String {
+    let mut res = "".to_string();
 
-        let mut last_left = None;
-
-        let mut current = &self;
-
-        loop {
-
-            
-
-            let current = 
-
+    let mut current_level = 0;
+    let mut even = 0;
+    for (i, n) in num.iter().enumerate() {
+        while current_level < n.depth {
+            write!(res, "[").unwrap();
+            current_level += 1;
+            even = 0;
         }
 
+        while current_level > n.depth {
+            write!(res, "]").unwrap();
+            current_level -= 1;
+            even = 1;
+        }
+
+        write!(res, "{}", n.value).unwrap();
+
+        if i != num.len() - 1 {
+            if even == 0 {
+                write!(res, ",").unwrap();
+            } else {
+                write!(res, "],").unwrap();
+                current_level -= 1;
+                even = 1;
+            }
+        }
+
+        even = (even + 1) & 0b1;
     }
 
-    fn reduce(self) -> Number {
-        self.explode()
+    while current_level > 0 {
+        write!(res, "]").unwrap();
+        current_level -= 1;
     }
 
-    fn add(self, rhs: Number) -> Number {
-        Pair(Box::new(self), Box::new(rhs)).reduce()
-    }
+    res
 }
 
-impl Debug for Number {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Literal(value) => write!(f, "{:?}", value),
-            Pair(left, right) => write!(f, "[{:?},{:?}]", left, right),
+fn parse(input: &str) -> Number {
+    let mut res = Vec::new();
+    let mut current_depth = 0;
+
+    for c in input.chars() {
+        match c {
+            '[' => current_depth += 1,
+            ']' => current_depth -= 1,
+            n @ '0'..='9' => res.push(Num {
+                depth: current_depth,
+                value: n.to_digit(10).unwrap() as i32,
+            }),
+            _ => continue,
         }
     }
+
+    res
 }
 
-struct Parser<'a> {
-    index: usize,
-    data: &'a [u8],
+fn add(mut a: Number, b: Number) -> Number {
+    a.extend_from_slice(&b);
+    for num in a.iter_mut() {
+        num.depth += 1;
+    }
+    a
 }
 
-impl<'a> Parser<'a> {
-    fn new(data: &'a str) -> Self {
-        Self {
-            index: 0,
-            data: data.as_bytes(),
+fn reduce(mut num: Number) -> Number {
+    for i in 0..(num.len() - 1) {
+        let a = num[i];
+        let b = num[i + 1];
+
+        if a.depth >= 4 && b.depth >= 4 && a.depth == b.depth {
+            if i > 0 {
+                num[i - 1].value += a.value;
+            }
+
+            num[i].value = 0;
+            num[i].depth -= 1;
+            num.remove(i + 1);
+
+            if i + 1 < num.len() {
+                num[i + 1].value += b.value
+            }
+            break;
         }
     }
 
-    fn take_byte(&mut self) -> Option<u8> {
-        let res = self.data.get(self.index).copied();
-        self.index += 1;
-        res
-    }
-
-    fn take_number(&mut self) -> Option<Number> {
-        let mut byte = self.take_byte()?;
-
-        while byte.is_ascii_whitespace() {
-            byte = self.take_byte()?;
-        }
-
-        if byte == b'[' {
-            let left = self.take_number()?;
-
-            assert!(self.take_byte()? == b',');
-
-            let right = self.take_number()?;
-            let res = Number::Pair(Box::new(left), Box::new(right));
-
-            assert!(self.take_byte()? == b']');
-
-            Some(res)
-        } else {
-            Some(Number::Literal((byte as char).to_digit(10).unwrap() as i32))
-        }
-    }
+    num
 }
 
 fn solve(input: &str) -> i32 {
-    let mut parser = Parser::new(input.trim());
+    let mut lines = input.lines();
 
-    let mut sum = parser.take_number().unwrap();
+    let mut sum = parse(lines.next().unwrap());
 
-    while let Some(number) = parser.take_number() {
-        sum = sum.add(number);
+    for line in lines {
+        let new_num = parse(line);
+        sum = add(sum, new_num);
     }
 
     dbg!(sum);
@@ -144,17 +151,23 @@ mod test {
 
     #[test]
     fn test_explode() {
-        use crate::Parser;
-
         let data = [
+            ("[[9,8],[1,2],[1,2]]", "[[9,8],[1,2],[1,2]]"),
             ("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]"),
             ("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]"),
-            ("[[[[[9,8],1],2],3],4]", "[[6,[5,[4,[3,2]]]],1]"),
+            ("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]"),
+            (
+                "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]",
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+            ),
+            (
+                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
+                "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
+            ),
         ];
 
         for (input, output) in data {
-            let mut number = Parser::new(input).take_number().unwrap().reduce();
-            assert_eq!(format!("{:?}", number), output);
+            assert_eq!(crate::print(&crate::reduce(crate::parse(input))), output);
         }
     }
 }
