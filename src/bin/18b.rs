@@ -1,4 +1,5 @@
 use aoc2021::get_input;
+use itertools::Itertools;
 use std::fmt::Debug;
 
 #[derive(Copy, Clone, Debug)]
@@ -127,16 +128,24 @@ fn reduce(mut num: Number) -> Number {
 }
 
 fn solve(input: &str) -> i32 {
-    let mut lines = input.lines();
+    let numbers = input.lines().map(parse).collect::<Vec<_>>();
 
-    let mut sum = parse(lines.next().unwrap());
+    let mut max = 0;
 
-    for line in lines {
-        let new_num = parse(line);
-        sum = reduce(add(sum, new_num));
+    let mut permutations = Vec::new();
+    for (a, b) in (0..numbers.len()).tuple_combinations() {
+        permutations.push((a, b));
+        permutations.push((b, a));
     }
 
-    magnitude(sum)
+    for (a, b) in permutations {
+        max = max.max(magnitude(reduce(add(
+            numbers[a].clone(),
+            numbers[b].clone(),
+        ))))
+    }
+
+    max
 }
 
 fn main() {
@@ -166,62 +175,6 @@ mod test {
 [[9,3],[[9,9],[6,[4,9]]]]
 [[2,[[7,7],7]],[[5,8],[[9,3],[0,2]]]]
 [[[[5,2],5],[8,[3,7]]],[[5,[7,5]],[4,4]]]";
-        assert_eq!(crate::solve(input), 4140);
-    }
-
-    #[derive(Debug)]
-    struct PrintNum {
-        depth: i32,
-        printed: String,
-    }
-
-    fn print(num: crate::Number) -> String {
-        let mut current_depth = num.iter().map(|n| n.depth).max().unwrap();
-
-        let mut state = Vec::new();
-
-        for n in num {
-            state.push(PrintNum {
-                depth: n.depth,
-                printed: format!("{}", n.value),
-            });
-        }
-
-        while state.len() > 1 {
-            let mut i = 0;
-            while i < state.len() - 1 {
-                if state[i].depth == current_depth && state[i + 1].depth == current_depth {
-                    state[i].depth -= 1;
-                    state[i].printed = format!("[{},{}]", state[i].printed, state[i + 1].printed);
-                    state.remove(i + 1);
-                }
-                i += 1;
-            }
-            current_depth -= 1;
-        }
-
-        state.into_iter().next().unwrap().printed
-    }
-
-    #[test]
-    fn test_explode() {
-        let data = [
-            ("[[9,8],[1,2]]", "[[9,8],[1,2]]"),
-            ("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]"),
-            ("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]"),
-            ("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]"),
-            (
-                "[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]",
-                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
-            ),
-            (
-                "[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]",
-                "[[3,[2,[8,0]]],[9,[5,[7,0]]]]",
-            ),
-        ];
-
-        for (input, output) in data {
-            assert_eq!(print(crate::explode(crate::parse(input)).1), output);
-        }
+        assert_eq!(crate::solve(input), 3993);
     }
 }
