@@ -43,6 +43,25 @@ fn print(num: &Number) -> String {
     state.into_iter().next().unwrap().printed
 }
 
+fn magnitude(mut num: Number) -> i32 {
+    let mut current_depth = num.iter().map(|n| n.depth).max().unwrap();
+
+    while num.len() > 1 {
+        let mut i = 0;
+        while i < num.len() - 1 {
+            if num[i].depth == current_depth && num[i + 1].depth == current_depth {
+                num[i].depth -= 1;
+                num[i].value = 3 * num[i].value + 2 * num[i + 1].value;
+                num.remove(i + 1);
+            }
+            i += 1;
+        }
+        current_depth -= 1;
+    }
+
+    num.into_iter().next().unwrap().value
+}
+
 fn parse(input: &str) -> Number {
     let mut res = Vec::new();
     let mut current_depth = 0;
@@ -70,7 +89,7 @@ fn add(mut a: Number, b: Number) -> Number {
     a
 }
 
-fn reduce(mut num: Number) -> Number {
+fn explode(mut num: Number) -> (bool, Number) {
     for i in 0..(num.len() - 1) {
         let a = num[i];
         let b = num[i + 1];
@@ -87,8 +106,55 @@ fn reduce(mut num: Number) -> Number {
             if i + 1 < num.len() {
                 num[i + 1].value += b.value
             }
-            break;
+            return (true, num);
         }
+    }
+
+    (false, num)
+}
+
+fn split(mut num: Number) -> (bool, Number) {
+    for i in 0..num.len() {
+        if num[i].value > 9 {
+            num[i].depth += 1;
+
+            let left = num[i].value / 2;
+            let right = (num[i].value + 1) / 2;
+
+            num[i].value = left;
+
+            num.insert(
+                i + 1,
+                Num {
+                    depth: num[i].depth,
+                    value: right,
+                },
+            );
+
+            return (true, num);
+        }
+    }
+
+    (false, num)
+}
+
+fn reduce(mut num: Number) -> Number {
+    loop {
+        let (applied, res) = explode(num);
+        num = res;
+
+        if applied {
+            continue;
+        }
+
+        let (applied, res) = split(num);
+        num = res;
+
+        if applied {
+            continue;
+        }
+
+        break;
     }
 
     num
@@ -101,19 +167,14 @@ fn solve(input: &str) -> i32 {
 
     for line in lines {
         let new_num = parse(line);
-        sum = add(sum, new_num);
+        sum = reduce(add(sum, new_num));
     }
 
-    dbg!(sum);
-
-    0
+    magnitude(sum)
 }
 
 fn main() {
     let input = get_input();
-    let input = "[1,2]
-[[3,4],5]"
-        .to_string();
     let start = std::time::Instant::now();
     let res = solve(&input);
     let end = start.elapsed();
@@ -160,7 +221,7 @@ mod test {
         ];
 
         for (input, output) in data {
-            assert_eq!(crate::print(&crate::reduce(crate::parse(input))), output);
+            assert_eq!(crate::print(&crate::explode(crate::parse(input)).1), output);
         }
     }
 }
