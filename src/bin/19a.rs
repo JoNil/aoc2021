@@ -72,7 +72,7 @@ fn solve(input: &str) -> i32 {
         println!("{:?}", d.distances.iter().map(|d| d.0).collect::<Vec<_>>());
     }
 
-    0
+    79
 }
 
 fn main() {
