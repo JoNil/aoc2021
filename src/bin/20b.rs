@@ -31,6 +31,7 @@ fn solve(input: &str) -> i32 {
         let max_y = map.keys().map(|v| v.y).max().unwrap();
 
         let mut new_map = HashMap::new();
+        new_map.reserve(2 * map.len());
 
         for y in (min_y - 1)..=(max_y + 1) {
             for x in (min_x - 1)..=(max_x + 1) {
