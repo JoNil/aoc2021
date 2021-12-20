@@ -41,11 +41,7 @@ fn solve(input: &str) -> i32 {
                 for offset in OFFSETS {
                     let input = pos + *offset;
 
-                    let old = map.get(&input).unwrap_or(if outside == '.' {
-                        algo.first().unwrap()
-                    } else {
-                        algo.last().unwrap()
-                    });
+                    let old = map.get(&input).unwrap_or(&outside);
 
                     index = (index << 1) | if *old == '.' { 0 } else { 1 };
                 }
