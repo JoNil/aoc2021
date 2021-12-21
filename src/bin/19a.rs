@@ -25,6 +25,7 @@ fn parse(input: &str) -> Vec<Vec<IVec3>> {
 #[derive(Debug, Default)]
 struct Scanner {
     beacons: Vec<Beacon>,
+    projection: (IMat3, IVec3),
 }
 
 impl Scanner {
@@ -50,7 +51,10 @@ impl Scanner {
             beacons.push(beacon);
         }
 
-        Self { beacons }
+        Self {
+            beacons,
+            ..Default::default()
+        }
     }
 }
 
@@ -86,9 +90,14 @@ impl Beacon {
     }
 }
 
+#[derive(Debug, Default)]
 struct IMat3(IVec3, IVec3, IVec3);
 
 impl IMat3 {
+    fn identity() -> Self {
+        IMat3(IVec3::X, IVec3::Y, IVec3::Z)
+    }
+
     fn apply(&self, rhs: IVec3) -> IVec3 {
         ivec3(
             self.0.x * rhs.x + self.1.x * rhs.y + self.2.x * rhs.z,
@@ -98,46 +107,106 @@ impl IMat3 {
     }
 }
 
-fn find_projection(overlap: &[(&Beacon, &Beacon)]) -> IVec3 {
-    //let possible_transforms = Vec::new();
+fn all_rotations() -> Vec<IMat3> {
+    let directions = [
+        IVec3::X,
+        IVec3::Y,
+        IVec3::Z,
+        -IVec3::X,
+        -IVec3::Y,
+        -IVec3::Z,
+    ];
 
-    //for i in
+    let mut res = Vec::new();
 
-    ivec3(0, 0, 0)
+    for x in directions {
+        for y in directions {
+            if x != y && x != -y {
+                let z = x.cross(y);
+                res.push(IMat3(x, y, z));
+            }
+        }
+    }
+
+    res
+}
+
+fn find_projection(overlap: &[(&Beacon, &Beacon)]) -> (IMat3, IVec3) {
+    'search: for rotation in all_rotations() {
+        let (a, b) = overlap[0];
+
+        let a_pos = a.pos;
+        let b_pos = rotation.apply(b.pos);
+
+        let res = a_pos - b_pos;
+
+        for (other_a, other_b) in &overlap[1..] {
+            let other_a_pos = other_a.pos;
+            let other_b_pos = rotation.apply(other_b.pos);
+
+            if res + other_b_pos != other_a_pos {
+                continue 'search;
+            }
+        }
+
+        return (rotation, res);
+    }
+
+    panic!("Could not find solution");
 }
 
 fn solve(input: &str) -> i32 {
     let scanner_beacon_positions = parse(input);
 
-    let scanners = scanner_beacon_positions
+    let mut scanners_left_to_search = scanner_beacon_positions
         .iter()
         .map(|bp| Scanner::new(bp))
         .collect::<Vec<_>>();
 
-    let one = &scanners[0];
-    let two = &scanners[1];
+    let mut positioned_scanners = Vec::new();
 
-    let mut overlap = Vec::new();
-
-    'outer: for b1 in &one.beacons {
-        for b2 in &two.beacons {
-            if b1.is_same(b2) {
-                overlap.push((b1, b2));
-
-                if overlap.len() == 12 {
-                    break 'outer;
-                }
-
-                continue 'outer;
-            }
-        }
+    {
+        let mut base = scanners_left_to_search.remove(0);
+        base.projection.0 = IMat3::identity();
+        positioned_scanners.push(base);
     }
 
-    let x = overlap[0].0.pos.x + overlap[0].1.pos.x;
-    let y = overlap[0].0.pos.y + overlap[0].1.pos.y;
-    let z = overlap[0].0.pos.z + overlap[0].1.pos.z;
+    let mut current_search_index = 0;
 
-    println!("{:#?}", ivec3(x, y, z));
+    while !scanners_left_to_search.is_empty() {
+        let scanner = &mut scanners_left_to_search[current_search_index];
+
+        let mut overlap = Vec::new();
+        let mut found_overlap = false;
+
+        'base: for base in &positioned_scanners {
+            'outer: for b1 in &base.beacons {
+                for b2 in &scanner.beacons {
+                    if b1.is_same(b2) {
+                        overlap.push((b1, b2));
+
+                        if overlap.len() == 12 {
+                            found_overlap = true;
+                            break 'outer;
+                        }
+
+                        continue 'outer;
+                    }
+                }
+            }
+
+            if found_overlap {
+                let projection = find_projection(&overlap);
+                scanner.projection = projection;
+                positioned_scanners.push(scanners_left_to_search.remove(current_search_index));
+                break 'base;
+            }
+        }
+
+        current_search_index = (current_search_index + 1) % scanners_left_to_search.len();
+    }
+
+    //println!("{:#?}\n{:?}", rotation, offset);
 
     0
 }
