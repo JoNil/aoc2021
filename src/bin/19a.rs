@@ -1,5 +1,6 @@
 use aoc2021::get_input;
 use glam::{ivec3, IVec3};
+use std::collections::{HashMap, HashSet};
 
 fn parse(input: &str) -> Vec<Vec<IVec3>> {
     input
@@ -22,57 +23,123 @@ fn parse(input: &str) -> Vec<Vec<IVec3>> {
 }
 
 #[derive(Debug, Default)]
-struct Beacon {
-    distances: Vec<(i32, usize)>,
+struct Scanner {
+    beacons: Vec<Beacon>,
 }
 
-fn solve(input: &str) -> i32 {
-    let scanners = parse(input);
+impl Scanner {
+    fn new(beacon_pos: &[IVec3]) -> Self {
+        let mut beacons = Vec::new();
 
-    let mut internal_distances = Vec::new();
+        for i in 0..beacon_pos.len() {
+            let mut beacon = Beacon::new(beacon_pos[i]);
 
-    for scanner in &scanners {
-        let mut scanner_beacons = Vec::new();
-
-        for i in 0..scanner.len() {
-            let mut beacon = Beacon::default();
-
-            for j in 0..scanner.len() {
+            for j in 0..beacon_pos.len() {
                 if i != j {
-                    let a = scanner[i];
-                    let b = scanner[j];
+                    let a = beacon_pos[i];
+                    let b = beacon_pos[j];
 
                     let distance = (a - b).abs();
 
                     beacon
                         .distances
-                        .push((distance.x + distance.y + distance.z, j));
+                        .insert(distance.x + distance.y + distance.z, j);
                 }
             }
 
-            beacon.distances.sort_by(|a, b| a.0.cmp(&b.0));
-            beacon.distances.drain(12..);
-
-            scanner_beacons.push(beacon);
+            beacons.push(beacon);
         }
 
-        internal_distances.push(scanner_beacons);
+        Self { beacons }
+    }
+}
+
+#[derive(Debug)]
+struct Beacon {
+    distances: HashMap<i32, usize>,
+    pos: IVec3,
+}
+
+impl Beacon {
+    fn new(pos: IVec3) -> Self {
+        Self {
+            distances: Default::default(),
+            pos,
+        }
     }
 
-    println!(
-        "{:?}",
-        internal_distances[0][0]
-            .distances
-            .iter()
-            .map(|d| d.0)
-            .collect::<Vec<_>>()
-    );
+    fn is_same(&self, other: &Beacon) -> bool {
+        let me = self.distances.iter().map(|d| d.0).collect::<HashSet<_>>();
 
-    for d in &internal_distances[1] {
-        println!("{:?}", d.distances.iter().map(|d| d.0).collect::<Vec<_>>());
+        let mut hits = 0;
+
+        for distance in other.distances.iter().map(|d| d.0) {
+            if me.contains(&distance) {
+                hits += 1;
+                if hits > 5 {
+                    return true;
+                }
+            }
+        }
+
+        false
+    }
+}
+
+struct IMat3(IVec3, IVec3, IVec3);
+
+impl IMat3 {
+    fn apply(&self, rhs: IVec3) -> IVec3 {
+        ivec3(
+            self.0.x * rhs.x + self.1.x * rhs.y + self.2.x * rhs.z,
+            self.0.y * rhs.x + self.1.y * rhs.y + self.2.y * rhs.z,
+            self.0.z * rhs.x + self.1.z * rhs.y + self.2.z * rhs.z,
+        )
+    }
+}
+
+fn find_projection(overlap: &[(&Beacon, &Beacon)]) -> IVec3 {
+    //let possible_transforms = Vec::new();
+
+    //for i in
+
+    ivec3(0, 0, 0)
+}
+
+fn solve(input: &str) -> i32 {
+    let scanner_beacon_positions = parse(input);
+
+    let scanners = scanner_beacon_positions
+        .iter()
+        .map(|bp| Scanner::new(bp))
+        .collect::<Vec<_>>();
+
+    let one = &scanners[0];
+    let two = &scanners[1];
+
+    let mut overlap = Vec::new();
+
+    'outer: for b1 in &one.beacons {
+        for b2 in &two.beacons {
+            if b1.is_same(b2) {
+                overlap.push((b1, b2));
+
+                if overlap.len() == 12 {
+                    break 'outer;
+                }
+
+                continue 'outer;
+            }
+        }
     }
 
-    79
+    let x = overlap[0].0.pos.x + overlap[0].1.pos.x;
+    let y = overlap[0].0.pos.y + overlap[0].1.pos.y;
+    let z = overlap[0].0.pos.z + overlap[0].1.pos.z;
+
+    println!("{:#?}", ivec3(x, y, z));
+
+    0
 }
 
 fn main() {
@@ -91,7 +158,7 @@ fn main() {
 #[cfg(test)]
 mod test {
     #[test]
-    fn test() {
+    fn test_20a() {
         let input = "--- scanner 0 ---
 404,-588,-901
 528,-643,409
